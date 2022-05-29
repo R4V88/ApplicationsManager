@@ -35,7 +35,7 @@ class ManipulateApplicationServiceTest {
                 """;
 
         //WHEN
-        service.createApplication(title, content);
+//        service.createApplication(title, content);
 
         //THEN
         final Optional<Application> app = repository.findAll()
@@ -65,7 +65,7 @@ class ManipulateApplicationServiceTest {
                 Line 5
                 """;
 
-        service.createApplication(title, content);
+//        service.createApplication(title, content);
 
         //WHEN
         final Optional<Application> app = service.findOneByTitle(title);

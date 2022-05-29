@@ -14,14 +14,10 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
     final ApplicationRepository applicationRepository;
 
     @Override
-    public void createApplication(String name, String content) {
-        Application application = new Application(name, content);
-        save(application);
-    }
-
-    @Override
-    public void save(Application application) {
-        applicationRepository.save(application);
+    public CreateApplicationResponse createApplication(CreateApplicationCommand command) {
+        Application application = new Application(command.getTitle(), command.getContent());
+        Application saveApplication = applicationRepository.save(application);
+        return CreateApplicationResponse.success(saveApplication.getId());
     }
 
     @Override
