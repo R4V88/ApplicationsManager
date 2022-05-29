@@ -1,4 +1,4 @@
-package com.applicationsmanager.applicationsmanager.applications.entity;
+package com.applicationsmanager.applicationsmanager.applications.domain;
 
 import lombok.AccessLevel;
 import lombok.Getter;
