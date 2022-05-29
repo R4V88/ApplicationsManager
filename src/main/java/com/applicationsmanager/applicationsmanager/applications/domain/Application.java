@@ -29,7 +29,7 @@ public class Application {
     @GeneratedValue
     Long id;
 
-    String name;
+    String title;
 
     String content;
 
@@ -49,8 +49,8 @@ public class Application {
     @LastModifiedDate
     LocalDateTime updatedAt;
 
-    public Application(String name, String content) {
-        this.name = name;
+    public Application(String title, String content) {
+        this.title = title;
         this.content = content;
         this.status = Status.CREATED;
     }
