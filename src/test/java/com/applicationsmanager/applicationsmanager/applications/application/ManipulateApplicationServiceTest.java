@@ -1,6 +1,8 @@
 package com.applicationsmanager.applicationsmanager.applications.application;
 
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase;
+import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.CreateApplicationCommand;
+import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.CreateApplicationResponse;
 import com.applicationsmanager.applicationsmanager.applications.db.ApplicationRepository;
 import com.applicationsmanager.applicationsmanager.applications.domain.Application;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
@@ -34,14 +36,17 @@ class ManipulateApplicationServiceTest {
                 Line 5
                 """;
 
+        CreateApplicationCommand command = CreateApplicationCommand.builder()
+                .title(title)
+                .content(content)
+                .build();
+
         //WHEN
-//        service.createApplication(title, content);
+        final CreateApplicationResponse response = service.createApplication(command);
 
         //THEN
-        final Optional<Application> app = repository.findAll()
-                .stream()
-                .filter(application -> application.getTitle().startsWith(title))
-                .findFirst();
+        final Long applicationId = response.getRight();
+        final Optional<Application> app = repository.findById(applicationId);
 
         assertEquals(title, app.get().getTitle());
         assertEquals(content, app.get().getContent());
@@ -65,15 +70,24 @@ class ManipulateApplicationServiceTest {
                 Line 5
                 """;
 
-//        service.createApplication(title, content);
+        final Long applicationId = createApplication(title, content);
 
         //WHEN
-        final Optional<Application> app = service.findOneByTitle(title);
+        final Optional<Application> app = service.findById(applicationId);
 
         //THEN
         assertEquals(title, app.get().getTitle());
         assertEquals(content, app.get().getContent());
         assertEquals(Status.CREATED, app.get().getStatus());
         assertEquals(0L, app.get().getVersion());
+    }
+
+    private Long createApplication(String title, String content) {
+        CreateApplicationCommand command = CreateApplicationCommand
+                .builder()
+                .title(title)
+                .content(content)
+                .build();
+        return service.createApplication(command).getRight();
     }
 }

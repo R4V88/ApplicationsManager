@@ -4,10 +4,12 @@ import com.applicationsmanager.applicationsmanager.applications.application.port
 import com.applicationsmanager.applicationsmanager.applications.db.ApplicationRepository;
 import com.applicationsmanager.applicationsmanager.applications.domain.Application;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ManipulateApplicationService implements ManipulateApplicationUseCase {
@@ -17,6 +19,7 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
     public CreateApplicationResponse createApplication(CreateApplicationCommand command) {
         Application application = new Application(command.getTitle(), command.getContent());
         Application saveApplication = applicationRepository.save(application);
+        log.info("Created new application with id: " + saveApplication.getId());
         return CreateApplicationResponse.success(saveApplication.getId());
     }
 
