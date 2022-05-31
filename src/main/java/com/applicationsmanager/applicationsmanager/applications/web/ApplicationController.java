@@ -64,7 +64,7 @@ public class ApplicationController {
     }
 
     @PatchMapping({"/{id}/content"})
-    public ResponseEntity<Object> changeApplicationContent(@PathVariable Long id, @Valid @RequestBody UpdateContentCommand command) {
+    public ResponseEntity<Object> changeApplicationContent(@PathVariable Long id, @RequestBody UpdateContentCommand command) {
         return manipulateApplication.changeApplicationContent(id, command)
                 .handle(
                         newContent -> ResponseEntity.accepted().build(),

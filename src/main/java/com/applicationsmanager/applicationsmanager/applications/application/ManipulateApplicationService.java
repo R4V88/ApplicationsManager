@@ -72,6 +72,7 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
         return readBooks(pageable);
     }
 
+    @Transactional
     @Override
     public UpadateContentResponse changeApplicationContent(Long id, UpdateContentCommand command) {
         final Optional<Application> application = applicationRepository.findById(id);

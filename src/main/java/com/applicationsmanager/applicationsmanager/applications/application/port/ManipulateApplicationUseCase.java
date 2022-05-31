@@ -50,13 +50,16 @@ public interface ManipulateApplicationUseCase {
         String content;
     }
 
+    @Builder
     @Value
     class UpdateStatusCommand {
         Status status;
         String reason;
     }
 
+    @Builder
     @Data
+    @AllArgsConstructor
     @NoArgsConstructor
     class UpdateContentCommand {
         String content;
