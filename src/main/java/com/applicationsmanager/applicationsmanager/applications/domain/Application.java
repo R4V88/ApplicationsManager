@@ -54,4 +54,10 @@ public class Application {
         this.content = content;
         this.status = Status.CREATED;
     }
+
+    public UpdateStatusResult updateStatus(Status newStatus) {
+        UpdateStatusResult result = this.status.updateStatus(newStatus);
+        this.status = result.getStatus();
+        return result;
+    }
 }

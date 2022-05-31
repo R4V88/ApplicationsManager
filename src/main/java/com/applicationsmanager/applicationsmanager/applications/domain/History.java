@@ -10,7 +10,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class History {
     @Id
@@ -32,14 +30,26 @@ public class History {
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     Application application;
 
+    String title;
+
+    String content;
+
+    String reason;
+
+    Long uuid;
+
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @CreatedDate
     LocalDateTime createdAt;
 
-    public History(Application application, Status status) {
+    public History(Application application) {
         this.application = application;
-        this.status = status;
+        this.status = application.getStatus();
+        this.title = application.getTitle();
+        this.content = application.getContent();
+        this.reason = application.getReason();
+        this.uuid = application.getUuid();
+        this.createdAt = application.getCreatedAt();
     }
 }

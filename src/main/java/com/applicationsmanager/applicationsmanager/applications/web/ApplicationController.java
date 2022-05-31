@@ -2,6 +2,7 @@ package com.applicationsmanager.applicationsmanager.applications.web;
 
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase;
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.CreateApplicationCommand;
+import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.UpdateStatusCommand;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
 import com.applicationsmanager.applicationsmanager.web.CreatedURI;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,12 +40,27 @@ public class ApplicationController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/search/filter")
-    public ResponseEntity<PaginatedApplicationResponse> getApplicationsWithFilter(@RequestParam(required = false) String title, @RequestParam(required = false) String status,@PageableDefault Pageable pageable) {
+    public ResponseEntity<Object> getApplicationsWithFilter(@RequestParam(required = false) String title, @RequestParam(required = false) String status, @PageableDefault Pageable pageable) {
         Status statusToEnum = null;
-        if(status != null) {
+        if (status != null) {
             statusToEnum = Status.valueOf(status);
         }
         return ResponseEntity.ok(manipulateApplication.filterApplicationsByTitleAndStatus(title, statusToEnum, pageable));
+    }
+
+    @PostMapping("/{id}/status")
+    public ResponseEntity<Object> updateApplicationStatus(@PathVariable Long id, @RequestBody UpdateStatusCommand command) {
+//        Status statusToEnum = Status
+//                .parseString(command.getStatus().toString())
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + command.getStatus()));
+
+//        UpdateStatusCommand command = new UpdateStatusCommand(id, statusToEnum);
+
+        return manipulateApplication.updateApplicationStatus(id, command)
+                .handle(
+                        newStatus -> ResponseEntity.accepted().build(),
+                        error -> ResponseEntity.status(error.getStatus()).build()
+                );
     }
 
     URI appliationUri(Long applicationId) {
