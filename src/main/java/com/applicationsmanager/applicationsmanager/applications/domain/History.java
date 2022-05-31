@@ -48,6 +48,6 @@ public class History {
         this.content = application.getContent();
         this.reason = application.getReason();
         this.uuid = application.getUuid();
-        this.createdAt = application.getCreatedAt();
+        this.createdAt = application.getUpdatedAt();
     }
 }

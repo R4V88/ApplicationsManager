@@ -6,7 +6,9 @@ import com.applicationsmanager.applicationsmanager.applications.web.PaginatedApp
 import com.applicationsmanager.applicationsmanager.commons.Either;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,8 @@ public interface ManipulateApplicationUseCase {
     PaginatedApplicationResponse readBooks(Pageable pageable);
 
     PaginatedApplicationResponse filterApplicationsByTitleAndStatus(String title, Status status, Pageable pageable);
+
+    UpadateContentResponse changeApplicationContent(Long id, UpdateContentCommand command);
 
     UpdateStatusResponse updateApplicationStatus(Long id, UpdateStatusCommand command);
 
@@ -52,6 +56,12 @@ public interface ManipulateApplicationUseCase {
         String reason;
     }
 
+    @Data
+    @NoArgsConstructor
+    class UpdateContentCommand {
+        String content;
+    }
+
     class CreateApplicationResponse extends Either<String, Long> {
         public CreateApplicationResponse(boolean success, String left, Long right) {
             super(success, left, right);
@@ -77,6 +87,20 @@ public interface ManipulateApplicationUseCase {
 
         public static UpdateStatusResponse failure(Error error) {
             return new UpdateStatusResponse(false, error, null);
+        }
+    }
+
+    class UpadateContentResponse extends Either<Error, String> {
+        public UpadateContentResponse(boolean success, Error left, String right) {
+            super(success, left, right);
+        }
+
+        public static UpadateContentResponse success(String content) {
+            return new UpadateContentResponse(true, null, content);
+        }
+
+        public static UpadateContentResponse failure(Error error) {
+            return new UpadateContentResponse(false, error, null);
         }
     }
 }

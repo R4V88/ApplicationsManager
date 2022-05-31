@@ -2,6 +2,7 @@ package com.applicationsmanager.applicationsmanager.applications.web;
 
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase;
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.CreateApplicationCommand;
+import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.UpdateContentCommand;
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.UpdateStatusCommand;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
 import com.applicationsmanager.applicationsmanager.web.CreatedURI;
@@ -57,6 +58,15 @@ public class ApplicationController {
         return manipulateApplication.updateApplicationStatus(id, command)
                 .handle(
                         newStatus -> ResponseEntity.accepted().build(),
+                        error -> ResponseEntity.status(error.getStatus()).build()
+                );
+    }
+
+    @PatchMapping({"/{id}/content"})
+    public ResponseEntity<Object> changeApplicationContent(@PathVariable Long id, @Valid @RequestBody UpdateContentCommand command) {
+        return manipulateApplication.changeApplicationContent(id, command)
+                .handle(
+                        newContent -> ResponseEntity.accepted().build(),
                         error -> ResponseEntity.status(error.getStatus()).build()
                 );
     }

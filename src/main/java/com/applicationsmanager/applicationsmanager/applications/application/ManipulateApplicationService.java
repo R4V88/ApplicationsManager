@@ -67,6 +67,23 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
         return readBooks(pageable);
     }
 
+    @Override
+    public UpadateContentResponse changeApplicationContent(Long id, UpdateContentCommand command) {
+        final Optional<Application> application = applicationRepository.findById(id);
+        final String content = command.getContent();
+
+        if (application.isPresent()) {
+            Application app = application.get();
+            final Status status = app.getStatus();
+            if (status.equals(Status.CREATED) || status.equals(Status.VERIFIED)) {
+                app.setContent(content);
+                saveApplicationAndHistory(app);
+                return UpadateContentResponse.success(content);
+            }
+        }
+        return UpadateContentResponse.failure(Error.BAD_REQUEST);
+    }
+
     @Transactional
     @Override
     public UpdateStatusResponse updateApplicationStatus(Long id, UpdateStatusCommand command) {
