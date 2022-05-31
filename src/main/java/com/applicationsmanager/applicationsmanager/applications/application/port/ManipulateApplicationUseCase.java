@@ -12,9 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Optional;
 
 public interface ManipulateApplicationUseCase {
@@ -30,6 +27,16 @@ public interface ManipulateApplicationUseCase {
 
     UpdateStatusResponse updateApplicationStatus(Long id, UpdateStatusCommand command);
 
+    @AllArgsConstructor
+    @Getter
+    enum Error {
+        NOT_FOUND(HttpStatus.NOT_FOUND),
+        FORBIDDEN(HttpStatus.FORBIDDEN),
+        BAD_REQUEST(HttpStatus.BAD_REQUEST);
+
+        private final HttpStatus status;
+    }
+
     @Builder
     @Value
     class CreateApplicationCommand {
@@ -41,8 +48,6 @@ public interface ManipulateApplicationUseCase {
 
     @Value
     class UpdateStatusCommand {
-//        @NotNull
-//        Long applicationId;
         Status status;
         String reason;
     }
@@ -73,15 +78,5 @@ public interface ManipulateApplicationUseCase {
         public static UpdateStatusResponse failure(Error error) {
             return new UpdateStatusResponse(false, error, null);
         }
-    }
-
-    @AllArgsConstructor
-    @Getter
-    enum Error {
-        NOT_FOUND(HttpStatus.NOT_FOUND),
-        FORBIDDEN(HttpStatus.FORBIDDEN),
-        BAD_REQUEST(HttpStatus.BAD_REQUEST);
-
-        private final HttpStatus status;
     }
 }

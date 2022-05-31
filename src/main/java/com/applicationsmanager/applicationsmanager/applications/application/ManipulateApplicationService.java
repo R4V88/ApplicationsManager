@@ -21,9 +21,9 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class ManipulateApplicationService implements ManipulateApplicationUseCase {
+    private static final int MIN_REASON_LENGHT = 1;
     final ApplicationRepository applicationRepository;
     final HistoryRepository historyRepository;
-    private static final int MIN_REASON_LENGHT = 1;
 
     @Override
     public CreateApplicationResponse createApplication(CreateApplicationCommand command) {

@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Status {
-    CREATED{
+    CREATED {
         @Override
         public UpdateStatusResult updateStatus(Status status) {
             return switch (status) {
@@ -27,7 +27,7 @@ public enum Status {
         }
     },
     REJECTED,
-    ACCEPTED{
+    ACCEPTED {
         @Override
         public UpdateStatusResult updateStatus(Status status) {
             return switch (status) {
@@ -40,13 +40,13 @@ public enum Status {
     PUBLISHED,
     DELETED;
 
-    public UpdateStatusResult updateStatus(Status status) {
-        throw new IllegalArgumentException("Unable to mark " + this.name() + " application as " + status.name());
-    }
-
     public static Optional<Status> parseString(String value) {
         return Arrays.stream(values())
                 .filter(it -> StringUtils.equalsIgnoreCase(it.name(), value))
                 .findFirst();
+    }
+
+    public UpdateStatusResult updateStatus(Status status) {
+        throw new IllegalArgumentException("Unable to mark " + this.name() + " application as " + status.name());
     }
 }
