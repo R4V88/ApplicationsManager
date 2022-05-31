@@ -6,13 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 
 @Getter
@@ -25,8 +23,11 @@ public class History {
     @GeneratedValue
     Long id;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    Application application;
+//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+//    Application application;
+    //changed to:
+
+    Long applicationId;
 
     String title;
 
@@ -42,7 +43,7 @@ public class History {
     LocalDateTime createdAt;
 
     public History(Application application) {
-        this.application = application;
+        this.applicationId = application.getId();
         this.status = application.getStatus();
         this.title = application.getTitle();
         this.content = application.getContent();

@@ -1,0 +1,18 @@
+GET localhost:8080/api/applications/search/filter
+
+###
+GET localhost:8080/api/applications/search/filter?title={title}&status={status}
+
+###
+GET localhost:8080/api/applications/search/filter?page=0&size=10
+
+###
+GET localhost:8080/api/applications/search/filter?title={title}&status={status}&page=0&size=10
+
+###
+GET localhost:8080/api/applications/search/filter?title={title}
+
+###
+GET localhost:8080/api/applications/search/filter?status={status}
+
+###

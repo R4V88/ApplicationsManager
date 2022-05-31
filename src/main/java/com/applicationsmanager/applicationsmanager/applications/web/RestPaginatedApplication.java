@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class PaginatedApplicationResponse {
+public class RestPaginatedApplication {
     private List<Application> applications;
     private Long numberOfItems;
     private int numberOfPages;

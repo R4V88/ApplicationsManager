@@ -2,7 +2,7 @@ package com.applicationsmanager.applicationsmanager.applications.application.por
 
 import com.applicationsmanager.applicationsmanager.applications.domain.Application;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
-import com.applicationsmanager.applicationsmanager.applications.web.PaginatedApplicationResponse;
+import com.applicationsmanager.applicationsmanager.applications.web.RestPaginatedApplication;
 import com.applicationsmanager.applicationsmanager.commons.Either;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,13 +19,13 @@ import java.util.Optional;
 public interface ManipulateApplicationUseCase {
     CreateApplicationResponse createApplication(CreateApplicationCommand command);
 
-    Optional<Application> findOneByTitle(String title);
-
     Optional<Application> findById(Long id);
 
-    PaginatedApplicationResponse readBooks(Pageable pageable);
+    DeleteApplicationResponse deleteApplicationById(Long id);
 
-    PaginatedApplicationResponse filterApplicationsByTitleAndStatus(String title, Status status, Pageable pageable);
+    RestPaginatedApplication readBooks(Pageable pageable);
+
+    RestPaginatedApplication filterApplicationsByTitleAndStatus(String title, Status status, Pageable pageable);
 
     UpadateContentResponse changeApplicationContent(Long id, UpdateContentCommand command);
 
@@ -101,6 +101,20 @@ public interface ManipulateApplicationUseCase {
 
         public static UpadateContentResponse failure(Error error) {
             return new UpadateContentResponse(false, error, null);
+        }
+    }
+
+    class DeleteApplicationResponse extends Either<Error, Long> {
+        public DeleteApplicationResponse(boolean success, Error left, Long right) {
+            super(success, left, right);
+        }
+
+        public static DeleteApplicationResponse success() {
+            return new DeleteApplicationResponse(true, null, null);
+        }
+
+        public static DeleteApplicationResponse failure(Error error) {
+            return new DeleteApplicationResponse(false, error, null);
         }
     }
 }

@@ -1,0 +1,7 @@
+PATCH localhost:8080/api/applications/{id}/content
+Content-Type: application/json
+//reason may remain empty. Used only with statuses: DELETED, REJECTED
+
+{
+  "content": "test content"
+}
