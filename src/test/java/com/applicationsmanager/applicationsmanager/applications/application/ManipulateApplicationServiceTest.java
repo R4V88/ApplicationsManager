@@ -9,11 +9,12 @@ import com.applicationsmanager.applicationsmanager.applications.db.ApplicationRe
 import com.applicationsmanager.applicationsmanager.applications.domain.Application;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
 import com.applicationsmanager.applicationsmanager.applications.web.RestPaginatedApplication;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
+@AutoConfigureTestDatabase
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class ManipulateApplicationServiceTest {
 
     @Autowired
@@ -31,24 +34,14 @@ class ManipulateApplicationServiceTest {
     @Autowired
     private ApplicationRepository repository;
 
-    private String title;
-    private String content;
-    private Long applicationId;
-
-    @BeforeEach
-    void setUp() {
-        //GIVEN
-        title = "Test";
-        content = """
-                Test
-                Content
-                Line 3
-                Line 4
-                Line 5
-                """;
-
-       applicationId = createApplication(title, content);
-    }
+    private final String title = "Title";
+    private final String content = """
+            Test
+            Content
+            Line 3
+            Line 4
+            Line 5
+            """;
 
     @Test
     void successfullyCreateNewApplication() {
@@ -87,6 +80,7 @@ class ManipulateApplicationServiceTest {
     @Test
     void retrieveNewCreatedApplication() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
 
         //WHEN
         final Optional<Application> app = service.findById(applicationId);
@@ -101,6 +95,8 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldDeleteApplicationByGivenId() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
+
         UpdateStatusCommand command = UpdateStatusCommand.builder()
                 .status(Status.DELETED)
                 .reason("Test")
@@ -120,6 +116,7 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldChangeApplicationContentWhenStatusCreated() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
 
         //WHEN
         UpdateContentCommand command = UpdateContentCommand.builder()
@@ -136,6 +133,7 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldUpdateStatusWhenStatusCreated() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
 
         //WHEN
         UpdateStatusCommand command = UpdateStatusCommand.builder()
@@ -153,6 +151,7 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldApplyUuidWhenStatusPublished() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
 
         //WHEN
         UpdateStatusCommand commandVerified = UpdateStatusCommand.builder()
@@ -184,6 +183,7 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldNotChangeStatusFromVerifiedToDeleted() {
         //GIVEN
+        final Long applicationId = givenApplication(title, content);
 
         //WHEN
         UpdateStatusCommand commandVerified = UpdateStatusCommand.builder()
@@ -208,17 +208,8 @@ class ManipulateApplicationServiceTest {
     @Test
     void shouldRetrieveTenElements() {
         //GIVEN
-        String title = "Test";
-        String content = """
-                Test
-                Content
-                Line 3
-                Line 4
-                Line 5
-                """;
-
         for (int i = 0; i <= 20; i++) {
-            createApplication(title, content);
+            givenApplication(title, content);
         }
 
         Pageable pageable = Pageable.ofSize(10);
@@ -232,7 +223,7 @@ class ManipulateApplicationServiceTest {
 
     }
 
-    private Long createApplication(String title, String content) {
+    private Long givenApplication(String title, String content) {
         CreateApplicationCommand command = CreateApplicationCommand
                 .builder()
                 .title(title)
