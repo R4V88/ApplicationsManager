@@ -1,0 +1,9 @@
+PATCH localhost:8080/api/applications/{id}/status
+Content-Type: application/json
+//reason may remain empty. Used only with statuses: DELETED, REJECTED
+
+{
+  "status": "VERIFIED",
+  "reason": "test reason"
+}
+
