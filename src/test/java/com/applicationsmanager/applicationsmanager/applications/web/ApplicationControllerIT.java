@@ -1,14 +1,15 @@
 package com.applicationsmanager.applicationsmanager.applications.web;
 
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase;
-import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.CreateApplicationCommand;
-import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.UpdateContentCommand;
 import com.applicationsmanager.applicationsmanager.applications.application.port.ManipulateApplicationUseCase.UpdateStatusCommand;
 import com.applicationsmanager.applicationsmanager.applications.db.ApplicationRepository;
 import com.applicationsmanager.applicationsmanager.applications.db.HistoryRepository;
 import com.applicationsmanager.applicationsmanager.applications.domain.Application;
 import com.applicationsmanager.applicationsmanager.applications.domain.History;
 import com.applicationsmanager.applicationsmanager.applications.domain.Status;
+import com.applicationsmanager.applicationsmanager.applications.web.ApplicationController.RestCreateApplicationCommand;
+import com.applicationsmanager.applicationsmanager.applications.web.ApplicationController.RestUpdateContentCommand;
+import com.applicationsmanager.applicationsmanager.applications.web.ApplicationController.RestUpdateStatusCommand;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -42,10 +43,9 @@ class ApplicationControllerIT {
     @Test
     void createApplication() {
         //GIVEN
-        CreateApplicationCommand command = CreateApplicationCommand.builder()
-                .content("Test Content")
-                .title("Test Title")
-                .build();
+        RestCreateApplicationCommand command = new RestCreateApplicationCommand();
+        command.setTitle("Test Title");
+        command.setContent("Test Content");
 
         //WHEN
         applicationController.createApplication(command);
@@ -68,7 +68,8 @@ class ApplicationControllerIT {
         final Application save = applicationRepository.save(application);
 
         //WHEN
-        UpdateStatusCommand command = getUpdateStatusCommand(Status.VERIFIED);
+        RestUpdateStatusCommand command = new RestUpdateStatusCommand();
+        command.setStatus(Status.VERIFIED);
         applicationController.updateApplicationStatus(save.getId(), command);
 
         //THEN
@@ -83,15 +84,17 @@ class ApplicationControllerIT {
         final Application save = applicationRepository.save(application);
 
         //WHEN
-        UpdateStatusCommand commandVerified = getUpdateStatusCommand(Status.VERIFIED);
-        UpdateStatusCommand commandRejeceted = getUpdateStatusCommand(Status.REJECTED);
-        applicationController.updateApplicationStatus(save.getId(), commandVerified);
-        applicationController.updateApplicationStatus(save.getId(), commandRejeceted);
+        RestUpdateStatusCommand command = new RestUpdateStatusCommand();
+        command.setStatus(Status.VERIFIED);
+        applicationController.updateApplicationStatus(save.getId(), command);
+        command.setStatus(Status.REJECTED);
+        command.setReason("For Test Purpose");
+        applicationController.updateApplicationStatus(save.getId(), command);
 
         //THEN
         final Optional<Application> app = applicationRepository.findById(save.getId());
         assertEquals(Status.REJECTED, app.get().getStatus());
-        assertEquals(commandRejeceted.getReason(), app.get().getReason());
+        assertEquals(command.getReason(), app.get().getReason());
     }
 
     @Test
@@ -102,12 +105,13 @@ class ApplicationControllerIT {
         historyRepository.save(new History(givenApplication));
 
         //WHEN
-        UpdateStatusCommand commandVerified = getUpdateStatusCommand(Status.VERIFIED);
-        UpdateStatusCommand commandAccepted = getUpdateStatusCommand(Status.ACCEPTED);
-        UpdateStatusCommand commandPublished = getUpdateStatusCommand(Status.PUBLISHED);
-        applicationController.updateApplicationStatus(givenApplication.getId(), commandVerified);
-        applicationController.updateApplicationStatus(givenApplication.getId(), commandAccepted);
-        applicationController.updateApplicationStatus(givenApplication.getId(), commandPublished);
+        RestUpdateStatusCommand command = new RestUpdateStatusCommand();
+        command.setStatus(Status.VERIFIED);
+        applicationController.updateApplicationStatus(givenApplication.getId(), command);
+        command.setStatus(Status.ACCEPTED);
+        applicationController.updateApplicationStatus(givenApplication.getId(), command);
+        command.setStatus(Status.PUBLISHED);
+        applicationController.updateApplicationStatus(givenApplication.getId(), command);
 
         //THEN
         final Optional<Application> app = applicationRepository.findById(givenApplication.getId());
@@ -147,9 +151,8 @@ class ApplicationControllerIT {
         final Application save = applicationRepository.save(application);
 
         //WHEN
-        UpdateContentCommand command = UpdateContentCommand.builder()
-                .content("Test Content DLC")
-                .build();
+        RestUpdateContentCommand command = new RestUpdateContentCommand();
+        command.setContent("Test Content DLC");
         applicationController.changeApplicationContent(save.getId(), command);
 
         //THEN
@@ -192,10 +195,7 @@ class ApplicationControllerIT {
     }
 
     private UpdateStatusCommand getUpdateStatusCommand(Status status) {
-        return UpdateStatusCommand.builder()
-                .status(status)
-                .reason("Test reason")
-                .build();
+        return new UpdateStatusCommand(status, "Test reason");
     }
 
     private Application givenApplication() {

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +33,7 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
         History record = new History(application);
         historyService.insertNewHistory(record);
         log.info("Created new application with id: " + saveApplication.getId());
-        return CreateApplicationResponse.success(saveApplication.getId());
+        return new CreateApplicationResponse(true, Collections.emptyList(), saveApplication.getId());
     }
 
     @Override
@@ -41,16 +42,17 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
     }
 
     @Override
-    public DeleteApplicationResponse deleteApplicationById(Long id) {
+    public boolean deleteApplicationById(Long id) {
         final Optional<Application> application = findById(id);
         if (application.isPresent()) {
             if (application.get().getStatus().equals(Status.DELETED)) {
                 applicationRepository.deleteById(id);
                 log.info("Deleted application with id: " + id);
-                return DeleteApplicationResponse.success();
-            }
+                return true;
+            } else
+                return false;
         }
-        return DeleteApplicationResponse.failure(Error.BAD_REQUEST);
+        return false;
     }
 
     @Override
@@ -74,60 +76,62 @@ public class ManipulateApplicationService implements ManipulateApplicationUseCas
 
     @Transactional
     @Override
-    public UpadateContentResponse changeApplicationContent(Long id, UpdateContentCommand command) {
-        final Optional<Application> application = applicationRepository.findById(id);
-        final String content = command.getContent();
+    public UpdateApplicationResponse changeApplicationContent(Long id, UpdateContentCommand command) {
+        return applicationRepository.findById(id)
+                .map(app -> {
+                    updateContent(command, app);
+                    return UpdateApplicationResponse.SUCCESS;
+                })
+                .orElseGet(() -> new UpdateApplicationResponse(false, Collections.singletonList(Error.NOT_FOUND.toString())));
+    }
 
-        if (application.isPresent()) {
-            Application app = application.get();
-            final Status status = app.getStatus();
-            if (status.equals(Status.CREATED) || status.equals(Status.VERIFIED)) {
-                app.setContent(content);
-                saveApplicationAndHistory(app);
-                log.info("Changed application with id: " + id + ", content: " + app.getContent() + " to: " + content);
-                return UpadateContentResponse.success(content);
-            }
-        }
-        return UpadateContentResponse.failure(Error.BAD_REQUEST);
+    private void updateContent(UpdateContentCommand command, Application application) {
+        application.setContent(command.getContent());
     }
 
     @Transactional
     @Override
-    public UpdateStatusResponse updateApplicationStatus(Long id, UpdateStatusCommand command) {
+    public UpdateApplicationResponse updateApplicationStatus(Long id, UpdateStatusCommand command) {
         return applicationRepository.findById(id)
                 .map(application -> {
-                    final Status status = command.getStatus();
-                    final String reason = command.getReason();
-                    final String currentStatus = application.getStatus().toString();
-
-                    if (status.equals(Status.REJECTED) || status.equals(Status.DELETED)) {
-                        if (reason.length() >= MIN_REASON_LENGHT) {
-                            application.setReason(reason);
-                            application.updateStatus(status);
-                            saveApplicationAndHistory(application);
-                            log.info("Changed application status: " + currentStatus + " with id: " + id + " to status: " + status);
-                            return UpdateStatusResponse.success(application.getStatus());
-                        } else {
-                            log.info("Application id: " + id + ", unable to change status from " + currentStatus + " to status" + status);
-                            return UpdateStatusResponse.failure(Error.BAD_REQUEST);
-                        }
+                    updateStatusOfCurrentApplication(command, application);
+                    if (!application.getStatus().equals(command.getStatus())) {
+                        return new UpdateApplicationResponse(false, Collections.singletonList(Error.BAD_REQUEST.toString()));
                     }
-                    if (status.equals(Status.PUBLISHED)) {
-                        long mostSignificantBits = getUuid();
-                        log.info("Generated new UUID " + mostSignificantBits + "for application with id: " + id);
-                        application.setUuid(mostSignificantBits);
-                        application.updateStatus(status);
-                        saveApplicationAndHistory(application);
-                        log.info("Changed application status: " + currentStatus + " with id: " + id + " to status: " + status);
-                        return UpdateStatusResponse.success(application.getStatus());
-                    }
+                    return UpdateApplicationResponse.SUCCESS;
+                })
+                .orElseGet(() -> new UpdateApplicationResponse(false, Collections.singletonList(Error.NOT_FOUND.toString())));
+    }
 
-                    application.updateStatus(status);
-                    saveApplicationAndHistory(application);
-                    log.info("Changed application status: " + currentStatus + " with id: " + id + " to status: " + status);
-                    return UpdateStatusResponse.success(application.getStatus());
+    private void updateStatusOfCurrentApplication(UpdateStatusCommand command, Application application) {
+        final Status status = command.getStatus();
+        final String reason = command.getReason();
+        final String currentStatus = application.getStatus().toString();
 
-                }).orElse(UpdateStatusResponse.failure(Error.NOT_FOUND));
+        if (status.equals(Status.REJECTED) || status.equals(Status.DELETED)) {
+            if (reason.length() >= MIN_REASON_LENGHT) {
+                application.setReason(reason);
+                application.updateStatus(status);
+                saveApplicationAndHistory(application);
+                log.info("Changed application status: " + currentStatus + " with id: " + application.getId() + " to status: " + status);
+                return;
+            } else {
+                log.info("Application id: " + application.getId() + ", unable to change status from " + currentStatus + " to status" + status);
+            }
+        }
+        if (status.equals(Status.PUBLISHED)) {
+            long mostSignificantBits = getUuid();
+            log.info("Generated new UUID " + mostSignificantBits + "for application with id: " + application.getId());
+            application.setUuid(mostSignificantBits);
+            application.updateStatus(status);
+            saveApplicationAndHistory(application);
+            log.info("Changed application status: " + currentStatus + " with id: " + application.getId() + " to status: " + status);
+            return;
+        }
+
+        application.updateStatus(status);
+        saveApplicationAndHistory(application);
+        log.info("Changed application status: " + currentStatus + " with id: " + application.getId() + " to status: " + status);
     }
 
     private void saveApplicationAndHistory(Application application) {

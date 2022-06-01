@@ -20,19 +20,15 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class ManipulateApplicationServiceTest {
-
-    @Autowired
-    private ManipulateApplicationUseCase service;
-    @Autowired
-    private ApplicationRepository repository;
 
     private final String title = "Title";
     private final String content = """
@@ -42,6 +38,10 @@ class ManipulateApplicationServiceTest {
             Line 4
             Line 5
             """;
+    @Autowired
+    private ManipulateApplicationUseCase service;
+    @Autowired
+    private ApplicationRepository repository;
 
     @Test
     void successfullyCreateNewApplication() {
@@ -55,16 +55,13 @@ class ManipulateApplicationServiceTest {
                 Line 5
                 """;
 
-        CreateApplicationCommand command = CreateApplicationCommand.builder()
-                .title(title)
-                .content(content)
-                .build();
+        CreateApplicationCommand command = new CreateApplicationCommand(title, content);
 
         //WHEN
         final CreateApplicationResponse response = service.createApplication(command);
 
         //THEN
-        final Long applicationId = response.getRight();
+        final Long applicationId = response.getId();
         final Optional<Application> app = repository.findById(applicationId);
 
         assertEquals(title, app.get().getTitle());
@@ -97,10 +94,7 @@ class ManipulateApplicationServiceTest {
         //GIVEN
         final Long applicationId = givenApplication(title, content);
 
-        UpdateStatusCommand command = UpdateStatusCommand.builder()
-                .status(Status.DELETED)
-                .reason("Test")
-                .build();
+        UpdateStatusCommand command = new UpdateStatusCommand(Status.DELETED, "Test");
 
         service.updateApplicationStatus(applicationId, command);
 
@@ -119,9 +113,7 @@ class ManipulateApplicationServiceTest {
         final Long applicationId = givenApplication(title, content);
 
         //WHEN
-        UpdateContentCommand command = UpdateContentCommand.builder()
-                .content("new test content")
-                .build();
+        UpdateContentCommand command = new UpdateContentCommand("New Test Content");
 
         service.changeApplicationContent(applicationId, command);
 
@@ -136,10 +128,7 @@ class ManipulateApplicationServiceTest {
         final Long applicationId = givenApplication(title, content);
 
         //WHEN
-        UpdateStatusCommand command = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.VERIFIED)
-                .build();
+        UpdateStatusCommand command = new UpdateStatusCommand(Status.VERIFIED, "");
 
         service.updateApplicationStatus(applicationId, command);
         //THEN
@@ -154,20 +143,11 @@ class ManipulateApplicationServiceTest {
         final Long applicationId = givenApplication(title, content);
 
         //WHEN
-        UpdateStatusCommand commandVerified = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.VERIFIED)
-                .build();
+        UpdateStatusCommand commandVerified = new UpdateStatusCommand(Status.VERIFIED, "");
 
-        UpdateStatusCommand commandAccepted = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.ACCEPTED)
-                .build();
+        UpdateStatusCommand commandAccepted = new UpdateStatusCommand(Status.ACCEPTED, "");
 
-        UpdateStatusCommand commandPublished = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.PUBLISHED)
-                .build();
+        UpdateStatusCommand commandPublished = new UpdateStatusCommand(Status.PUBLISHED, "");
 
         service.updateApplicationStatus(applicationId, commandVerified);
         service.updateApplicationStatus(applicationId, commandAccepted);
@@ -186,23 +166,18 @@ class ManipulateApplicationServiceTest {
         final Long applicationId = givenApplication(title, content);
 
         //WHEN
-        UpdateStatusCommand commandVerified = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.VERIFIED)
-                .build();
+        UpdateStatusCommand commandVerified = new UpdateStatusCommand(Status.VERIFIED, "");
 
         service.updateApplicationStatus(applicationId, commandVerified);
 
         //THEN
-        UpdateStatusCommand commandDeleted = UpdateStatusCommand.builder()
-                .reason("")
-                .status(Status.DELETED)
-                .build();
+        UpdateStatusCommand commandDeleted = new UpdateStatusCommand(Status.DELETED, "");
 
-        service.updateApplicationStatus(applicationId, commandDeleted);
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            service.updateApplicationStatus(applicationId, commandDeleted);
+        });
 
-        final Optional<Application> app = service.findById(applicationId);
-        assertNotEquals(app.get().getStatus(), commandDeleted.getStatus());
+        assertTrue(exception.getMessage().contains("Unable to mark VERIFIED application as DELETED"));
     }
 
     @Test
@@ -224,11 +199,7 @@ class ManipulateApplicationServiceTest {
     }
 
     private Long givenApplication(String title, String content) {
-        CreateApplicationCommand command = CreateApplicationCommand
-                .builder()
-                .title(title)
-                .content(content)
-                .build();
-        return service.createApplication(command).getRight();
+        CreateApplicationCommand command = new CreateApplicationCommand(title, content);
+        return service.createApplication(command).getId();
     }
 }
